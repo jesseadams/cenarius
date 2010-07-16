@@ -1,14 +1,16 @@
 #!/usr/bin/ruby
 
+BASE_DIR = File.expand_path(File.dirname(__FILE__))
+
 require 'rubygems'
 require 'yaml'
 require 'ostruct'
 require 'cloudfiles'
 require 'duration'
-require 'lib/float'
+require BASE_DIR + '/lib/float'
 require 'date'
 
-config = OpenStruct.new(YAML::load_file('config.yml'))
+config = OpenStruct.new(YAML::load_file(BASE_DIR + '/config.yml'))
 
 print "Connecting to RackSpace CloudFiles... "
 cf = CloudFiles::Connection.new(config.username, config.api_key)
