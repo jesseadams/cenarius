@@ -1,0 +1,15 @@
+api_key: api_key_here
+username: username_here 
+
+backups:
+  container_name:
+    '/path/to/files':
+      - 'backup_1'
+      - 'backup_2'
+      - 'backup_3'
+    '/path/to/more/files':
+      - 'backup_me'
+      - 'and_me'
+  container_name_2:
+    '/var/www'
+      - 'website'

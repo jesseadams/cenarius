@@ -1,0 +1,56 @@
+#!/usr/bin/ruby
+
+require 'rubygems'
+require 'yaml'
+require 'ostruct'
+require 'cloudfiles'
+require 'duration'
+require 'lib/float'
+require 'date'
+
+config = OpenStruct.new(YAML::load_file('config.yml'))
+
+print "Connecting to RackSpace CloudFiles... "
+cf = CloudFiles::Connection.new(config.username, config.api_key)
+print "OK!\n"
+
+Dir.chdir "/tmp"
+
+date = Date.today
+suffix = date.strftime "%Y%m%d"
+
+config.backups.each do |cont, base_dirs|
+  puts ">> Processing #{cont}..."
+
+  unless cf.container_exists? cont
+    puts "   ### Container did not exist and was created ###"
+    cf.create_container cont
+  end
+
+  container = cf.container(cont)
+  base_dirs.each do |base_dir, folders|
+    folders.each do |folder|
+      filename = "#{folder}_#{suffix}.tar"
+
+      time = Time.now
+      print "  > Processing #{base_dir}/#{folder}... "
+      system("tar -cf #{filename} #{base_dir}/#{folder} 2> /dev/null")
+      system("gzip #{filename}")
+ 
+      filename = filename + '.gz'
+      print "uploading #{File.size(filename).to_f.humanize}... "
+      file = container.create_object(filename, true)
+      file.load_from_filename(filename)
+	
+      elapsed = Time.now - time	
+      if elapsed < 1
+        print "less than a second.\n"
+      else
+      	print Duration.new(elapsed).to_s + ".\n"
+      end
+    end
+  end
+end
+
+puts "Cleaning up..."
+system("rm -f /tmp/*.tar.gz")
